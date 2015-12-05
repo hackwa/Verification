@@ -16,51 +16,63 @@ class incrementalSolver(SATRep):
     def  _init_watch(self):
         wlist = []
         for  clause in self.sentence:
-            self.wlist.append(clause[0])
+            wlist.append(clause[0])
         return wlist
         print(wlist)
 
-    def self.eliminate_ptr_to(val):
-          for i in xrange(self.nclauses):
-              if wlist[i] == val:
-                clause = self.sentence[i]
+    def eliminate_ptr_to(self,n,wlist):
+        clause = self.sentence[n]
+        for i in range(len(clause)):
+            if clause[i] not in self.blacklist:
+                wlist[n] = clause[i]
+                return True
+        return False
 
     # Conflict detection happens here
     def _update_watch(self,var,value,wlist):
+        ret = True
         code = self.var_map[var]
         if value is True:
             eliminate = code << 1 | 1            
         elif value is False:
             eliminate  = code << 1 | 0
-        for i in xrange(nclauses):
-            pass
+        self.blacklist.append(eliminate)
+        for i in range(self.nclauses):
+            if wlist[i] == eliminate:
+                ret = self.eliminate_ptr_to(i,wlist)
+                if ret is False:
+                    print("Conflict!")
+                    break
+        return ret
 
 
-    def _recurse(self,depth,wlist,blacklist):
+    def _recurse(self,depth,wlist):
         if depth == len(self.variables):
+            self.satisfied = 1
             print("Satisfied!")
             return True
         var = self.variables[depth]
-        print("Setting %d to True"%var)
+        print("Setting %s to True"%var)
         self.stack.append([var,True])
         if self._update_watch(var,True,wlist):
-            self._recurse(depth+1)
+            self._recurse(depth+1,wlist)
         else:
-            print("Setting %d to False"%var)
+            print("Setting %s to False"%var)
             self.stack[-1][1] = False
             if self._update_watch(var,False,wlist):
-                self._recurse(depth+1)
-        else:
-            self.stack.pop()
-            return False
+                self._recurse(depth+1,wlist)
+        self.blacklist.pop()
+        self.stack.pop()
+        self.satisfied = False
+        return False
 
 
     def  solve(self):
         wlist = self._init_watch()
         self.stack = []
-        blacklist = []
+        self.blacklist = []
         depth = 0
-        self.satisfies = self._recurse(depth,wlist,blacklist)
+        self.satisfies = self._recurse(depth,wlist)
 
 def main():
     ap = argparse.ArgumentParser()
