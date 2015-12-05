@@ -14,59 +14,53 @@ class incrementalSolver(SATRep):
 
     # initialize the watchlist
     def  _init_watch(self):
-        self.wlist = []
+        wlist = []
         for  clause in self.sentence:
             self.wlist.append(clause[0])
-        print(self.wlist)
+        return wlist
+        print(wlist)
 
-    def _analyzeclause(self,i):
-            for j in range(len(self.sentence[i])):
-                if self.sentence[i][j] not in falseval:
-                    return self.sentencqe[i][j]
-            return None
-
+    def self.eliminate_ptr_to(val):
+          for i in xrange(self.nclauses):
+              if wlist[i] == val:
+                clause = self.sentence[i]
 
     # Conflict detection happens here
-    def _update_watch(self,falseval):
-    # Add conflict clauses to watchlist
-        if len(self.wlist) < self.nclauses:
-            for i in xrange(len(self.wlist),self.nclauses):
-                self.wlist.append(sentence[i][0])
-        for i in range(self.nclauses):
-            if self.wlist[i] == falseval:
-                newval = _analyzeclause(i)
-                if newval is None:
-                    return None
-                else:
-                    self.wlist[i] = newval
-        return 1
+    def _update_watch(self,var,value,wlist):
+        code = self.var_map[var]
+        if value is True:
+            eliminate = code << 1 | 1            
+        elif value is False:
+            eliminate  = code << 1 | 0
+        for i in xrange(nclauses):
+            pass
 
-    def _recurse(self):
-        if len(self.assignments) is 0:
+
+    def _recurse(self,depth,wlist,blacklist):
+        if depth == len(self.variables):
+            print("Satisfied!")
             return True
-        var = self.assignments.popleft()
-        print(type(var))
-        assign = self.var_map[var] << 1 | 0
-        self.falseval.append(assign)
-        if _update_watch(assign) is not None:
-            self._recurse()
+        var = self.variables[depth]
+        print("Setting %d to True"%var)
+        self.stack.append([var,True])
+        if self._update_watch(var,True,wlist):
+            self._recurse(depth+1)
         else:
-            falseval.pop()
-            assign = assign | 1
-            falseval.append(assign)
-            if _update_watch(assign) is not None:
-                self._recurse()
-        return False
-
+            print("Setting %d to False"%var)
+            self.stack[-1][1] = False
+            if self._update_watch(var,False,wlist):
+                self._recurse(depth+1)
+        else:
+            self.stack.pop()
+            return False
 
 
     def  solve(self):
-        self._init_watch()
-        self.assignments = deque()
-        for i in range(len(self.variables)):
-            self.assignments.append(self.variables)
-        self.falseval = []
-        self.satisfies = self._recurse()
+        wlist = self._init_watch()
+        self.stack = []
+        blacklist = []
+        depth = 0
+        self.satisfies = self._recurse(depth,wlist,blacklist)
 
 def main():
     ap = argparse.ArgumentParser()
@@ -78,6 +72,7 @@ def main():
     print(formula.var_map)
     formula.show()
     formula.solve()
+    print(formula.satisfies)
 
 if __name__ == "__main__":
     main()
