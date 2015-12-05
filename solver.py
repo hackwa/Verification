@@ -63,7 +63,6 @@ class incrementalSolver(SATRep):
                 self._recurse(depth+1,wlist)
         self.blacklist.pop()
         self.stack.pop()
-        self.satisfied = False
         return False
 
 
