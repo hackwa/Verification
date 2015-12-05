@@ -21,7 +21,7 @@ class incrementalSolver(SATRep):
 
     def _analyzeclause(self,i):
             for j in range(len(self.sentence[i])):
-                if self.sentence[i][j] is not in falseval:
+                if self.sentence[i][j] not in falseval:
                     return self.sentencqe[i][j]
             return None
 
@@ -33,7 +33,7 @@ class incrementalSolver(SATRep):
             for i in xrange(len(self.wlist),self.nclauses):
                 self.wlist.append(sentence[i][0])
         for i in range(self.nclauses):
-            if self.wlist[i] = falseval
+            if self.wlist[i] == falseval:
                 newval = _analyzeclause(i)
                 if newval is None:
                     return None
@@ -45,16 +45,18 @@ class incrementalSolver(SATRep):
         if len(self.assignments) is 0:
             return True
         var = self.assignments.popleft()
-        assign = var << 1 | 0
+        print(type(var))
+        assign = self.var_map[var] << 1 | 0
         self.falseval.append(assign)
-        if _update_watch(assign) is 1:
-            _recurse()
+        if _update_watch(assign) is not None:
+            self._recurse()
         else:
             falseval.pop()
             assign = assign | 1
             falseval.append(assign)
-            _recurse()
-        return None
+            if _update_watch(assign) is not None:
+                self._recurse()
+        return False
 
 
 
@@ -62,9 +64,9 @@ class incrementalSolver(SATRep):
         self._init_watch()
         self.assignments = deque()
         for i in range(len(self.variables)):
-            self.assignments.append(variables)
+            self.assignments.append(self.variables)
         self.falseval = []
-        self.satisfies = _recurse()
+        self.satisfies = self._recurse()
 
 def main():
     ap = argparse.ArgumentParser()
