@@ -20,6 +20,8 @@ class dagraph():
         self.nnodes = 0
 
     def  add_node(self,value,level):
+        if value in self.values:
+            return
         node = dagnode(value,level)
         self.nodes.append(node)
         self.values.append(value)

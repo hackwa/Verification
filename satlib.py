@@ -12,8 +12,13 @@ class SATRep():
     def preprocess(self,code):
         self.unit.append([code,0])
         
+    def  add_clause(self,clause):
+        if len(clause) == 1:
+            self.preprocess(clause)
+        if clause not in self.sentence:
+            self.sentence.append(clause)
 
-    def add_clause(self, line):
+    def add_clause_file(self, line):
         clause = []
         arr = line.split(" ")
         for literal in arr:
@@ -26,7 +31,7 @@ class SATRep():
                 self.var_map[var] = no
             coding = self.var_map[var] << 1 | negated
             clause.append(coding)
-        self.sentence.append(tuple(clause))
+        self.sentence.append(clause)
         self.nclauses += 1
         if len(arr) is 1:
             self.preprocess(coding)
@@ -37,7 +42,7 @@ class SATRep():
         except:
             print("Error while read operation")
             sys.exit(1)
-        [self.add_clause(line) for line in clauses]
+        [self.add_clause_file(line) for line in clauses]
         print("Successfully read ",fname)
 
     def show(self):
