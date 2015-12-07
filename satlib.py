@@ -7,11 +7,10 @@ class SATRep():
         self.var_map = {}
         self.sentence = []
         self.nclauses = 0
-        self.stack = []
+        self.unit = []
 
-    def preprocess(self,literal,negated):
-        truth = True if  negated is 0 else False
-        self.stack.append([literal,truth,0])
+    def preprocess(self,code):
+        self.unit.append([code,0])
         
 
     def add_clause(self, line):
@@ -30,7 +29,7 @@ class SATRep():
         self.sentence.append(tuple(clause))
         self.nclauses += 1
         if len(arr) is 1:
-            self.preprocess(var,negated)
+            self.preprocess(coding)
 
     def readfile(self,fname):
         try:
