@@ -5,3 +5,5 @@ a ~b ~d
 b d
 b ~c ~d
 ~b ~c d
+~e
+f

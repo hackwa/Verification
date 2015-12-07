@@ -7,10 +7,17 @@ class SATRep():
         self.var_map = {}
         self.sentence = []
         self.nclauses = 0
+        self.stack = []
+
+    def preprocess(self,literal,negated):
+        truth = True if  negated is 0 else False
+        self.stack.append([literal,truth,0])
+        
 
     def add_clause(self, line):
         clause = []
-        for literal in line.split(" "):
+        arr = line.split(" ")
+        for literal in arr:
             negated = 1 if literal.startswith("~") else 0
             var = literal[negated:]
             if var not in self.variables:
@@ -22,6 +29,8 @@ class SATRep():
             clause.append(coding)
         self.sentence.append(tuple(clause))
         self.nclauses += 1
+        if len(arr) is 1:
+            self.preprocess(var,negated)
 
     def readfile(self,fname):
         try:
