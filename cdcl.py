@@ -70,23 +70,23 @@ class incrementalSolver(SATRep):
                 return i
         return None
 
-#    def _conflictAnalysis(self):
-#        nodes = self.graph.getnodes()
-#        print("nodes: ",nodes)
-#        for  i in self.assignments:
-#            if i in nodes and i^1 in nodes:
-#                history = self.graph.get_prev(i) + self.graph.get_prev(i^1)
-#                history = list(set(history))
-#                print("History: ",history)
-#                break
-#        time.sleep(10)
-#        return "a"
+    def _conflictAnalysis(self):
+        nodes = self.graph.getnodes()
+        print("nodes: ",nodes)     
+        for  i in self.assignments:
+            if i in nodes and i^1 in nodes:
+                history = self.graph.get_prev(i) + self.graph.get_prev(i^1)
+                history = list(set(history))
+                print("History: ",history)
+                break
+        time.sleep(10)
+        return "a"
 
     def _deduce(self):
         last = self.stack[-1][0]
         self.graph.add_node(last,self.level)
         falseval = last ^ 1
-        print("falseval: ",falseval)
+        #print("falseval: ",falseval)
         for clause in self.sentence:
             if len(clause) < 2:
                 continue
@@ -107,7 +107,7 @@ class incrementalSolver(SATRep):
                     else:
                         self._addassignment(clause[0])
                 else:
-                    print("Swapping!")
+                    #print("Swapping!")
                     index = 0 if clause[0] == falseval else 1
                     newclause = clause[retval]
                     clause[retval] = clause[index]
