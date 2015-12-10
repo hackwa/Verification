@@ -170,6 +170,9 @@ class incrementalSolver(SATRep):
             print(self.sentence)
         print("process ended!")
 
+    def  increment_clause(self,clause):
+        pass
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("-f","--fname",help="filename to read",default="data")
