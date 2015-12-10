@@ -83,6 +83,10 @@ def main():
     print(formula.var_map)
     formula.show()
     formula.solve()
+    formula.add_clause([1,3,5])
+    formula.solve()
+    formula.remove_clause([1,3,5])
+    formula.solve()
     print(formula.satisfies)
 
 if __name__ == "__main__":

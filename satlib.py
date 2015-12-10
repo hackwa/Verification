@@ -36,6 +36,16 @@ class SATRep():
         if len(arr) is 1:
             self.preprocess(coding)
 
+    def remove_clause(self,clause):
+        for i in range(self.nclauses):
+            if self.sentence[i] == clause:
+                del self.sentence[i]
+                self.nclauses -= 1
+        if len(clause) == 1:
+            for i in range(len(self.unit)):
+                if clause == self.unit[i]:
+                    del self.unit[i]
+
     def readfile(self,fname):
         try:
             clauses = [line.rstrip('\n') for line in open(fname)]

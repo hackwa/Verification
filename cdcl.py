@@ -12,6 +12,8 @@ class incrementalSolver(SATRep):
 
     def __init__(self):
         self.satisfies = None
+        self.increment = [-1]
+        self.increment_map = {}
         super(incrementalSolver, self).__init__()
 
     def _initialise(self):
@@ -28,12 +30,13 @@ class incrementalSolver(SATRep):
         for i in self.variables:
             if i not in temp:
                 self.unassigned.append(self.var_map[i])
+        inc = self.increment_map.values()
+        if len(inc) > 0:
+            [self.queue.append(i) for i in inc]
         random.shuffle(self.unassigned)
-        print("Random Queue: ",self.unassigned)
         self.chosenOne = None
         self.level = 0
         self.ctr = 0
-        print("Initialization done")
 
     def makeDecision(self):
         if len(self.unassigned) is 0:
@@ -41,7 +44,7 @@ class incrementalSolver(SATRep):
         self.level += 1
         negation = random.randint(0,1)
         var = self.unassigned.pop() << 1 | negation
-        print("Deciding to add: ",var)
+#        print("Deciding to add: ",var)
         self.queue.append([var,self.level])
         return 1
         # choose an unassigned variable and add to queue
@@ -54,7 +57,7 @@ class incrementalSolver(SATRep):
                 print("Satisfied!")
                 return False
         self.chosenOne = self.queue.popleft()
-        print("unassigned: ",self.unassigned)
+#        print("unassigned: ",self.unassigned)
         return True
 
     def _addassignment(self,val,cause):
@@ -65,7 +68,7 @@ class incrementalSolver(SATRep):
         self.stack.append([val,self.level])
         if val not in self.assignments:
             self.assignments.append(val)
-        print("val: ",val)
+#        print("val: ",val)
         try:
             self.unassigned.remove(val >> 1)
         except:
@@ -79,12 +82,12 @@ class incrementalSolver(SATRep):
 
     def _conflictAnalysis(self):
         nodes = self.graph.getnodes()
-        print("nodes: ",nodes)     
+#        print("nodes: ",nodes)     
         for  i in self.assignments:
             if i in nodes and i^1 in nodes:
                 history = self.graph.get_prev(i) + self.graph.get_prev(i^1)
                 history = list(set(history))
-                print("History: ",history)
+#                print("History: ",history)
                 break
         #time.sleep(10)
         return [x^1 for x in history]
@@ -93,7 +96,7 @@ class incrementalSolver(SATRep):
         last = self.stack[-1][0]
         result = []
         self.graph.add_node(last,self.level)
-        print("stack = ",self.stack)
+#        print("stack = ",self.stack)
         falseval = last ^ 1
         #print("falseval: ",falseval)
         for clause in self.sentence:
@@ -102,7 +105,7 @@ class incrementalSolver(SATRep):
             if clause[0] in self.assignments or clause[1] in self.assignments:
                 continue
             if clause[0] ^ 1 in self.assignments and clause[1] ^1 in self.assignments:
-                print("A conflict has occured",clause,self.assignments)
+#                print("A conflict has occured",clause,self.assignments)
                 if self.level == 0:
                     return "unsat"
                 cause = [ x^1 for x  in clause[1:]]
@@ -118,7 +121,7 @@ class incrementalSolver(SATRep):
                         cause = [falseval] + [x^1 for x in clause [2:]]
                     else:
                         cause = [falseval]
-                    print("a unit clause!",clause,cause)
+#                    print("a unit clause!",clause,cause)
                     if clause[0] == falseval:
                         result.append([clause[1],cause])
                     else:
@@ -139,7 +142,7 @@ class incrementalSolver(SATRep):
     def _cdcl(self):
         self._initialise()
         while self.chooseNextAssignment() is True:
-            print("Chosen one:",self.chosenOne)
+#            print("Chosen one:",self.chosenOne)
             self.stack.append(self.chosenOne)
             self.assignments.append(self.chosenOne[0])
             # add the choseone to the stack and call deduce
@@ -158,7 +161,7 @@ class incrementalSolver(SATRep):
                     print("Unsatisfiable!")
                     return "unsat"
                 elif val is False:
-                        print("restarting")
+#                        print("restarting")
                         return "restart"
                 else:
                     break
@@ -166,12 +169,25 @@ class incrementalSolver(SATRep):
 
     def  solve(self):
         while self._cdcl() is "restart":
-            print("Added a clause and restarting")
-            print(self.sentence)
-        print("process ended!")
+            None
+#            print("Added a clause and restarting")
+#            print(self.sentence)
+ #       print("process ended!")
 
     def  increment_clause(self,clause):
-        pass
+        self.add_clause(clause + self.increment)
+        self.increment_map[str(clause)] = self.increment
+        self.increment[0] -= 2
+
+    def decrement_clause(self,clause):
+        try:
+            freevar = self.increment_map[str(clause)]
+        except:
+            print("clause not found in the increment_map")
+        for clause in self.sentence:
+            if freevar in clause:
+                self.sentence.remove(str(clause))
+                del x[clause]
 
 def main():
     ap = argparse.ArgumentParser()
@@ -182,6 +198,10 @@ def main():
     print(formula.sentence)
     print(formula.var_map)
     formula.show()
+    formula.solve()
+    formula.increment_clause([1,3,5])
+    formula.solve()
+    formula.decrement_clause([1,3,5])
     formula.solve()
     print(formula.stack)
 
