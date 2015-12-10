@@ -15,6 +15,7 @@ class incrementalSolver(SATRep):
         super(incrementalSolver, self).__init__()
 
     def _initialise(self):
+        self.deduced = []
         self.graph = dagraph()
         self.stack = []
         self.assignments = []
@@ -56,13 +57,19 @@ class incrementalSolver(SATRep):
         print("unassigned: ",self.unassigned)
         return True
 
-    def _addassignment(self,val):
+    def _addassignment(self,val,cause):
         self.graph.add_node(val,self.level)
-        self.graph.add_prev(val,self.stack[-1][0])
+        if cause is not None:
+            for i in cause:
+                self.graph.add_prev(val,i)
         self.stack.append([val,self.level])
-        self.assignments.append(val)
+        if val not in self.assignments:
+            self.assignments.append(val)
         print("val: ",val)
-        self.unassigned.remove(val >> 1)
+        try:
+            self.unassigned.remove(val >> 1)
+        except:
+            return
 
     def _search(self,clause):
         for i in range(2,len(clause)):
@@ -79,12 +86,14 @@ class incrementalSolver(SATRep):
                 history = list(set(history))
                 print("History: ",history)
                 break
-        time.sleep(10)
-        return "a"
+        #time.sleep(10)
+        return [x^1 for x in history]
 
     def _deduce(self):
         last = self.stack[-1][0]
+        result = []
         self.graph.add_node(last,self.level)
+        print("stack = ",self.stack)
         falseval = last ^ 1
         #print("falseval: ",falseval)
         for clause in self.sentence:
@@ -94,24 +103,37 @@ class incrementalSolver(SATRep):
                 continue
             if clause[0] ^ 1 in self.assignments and clause[1] ^1 in self.assignments:
                 print("A conflict has occured",clause,self.assignments)
-                learn = [clause[0]^1,clause[1]^1]
+                if self.level == 0:
+                    return "unsat"
+                cause = [ x^1 for x  in clause[1:]]
+                self._addassignment(clause[0],cause)
+                learn = self._conflictAnalysis()
                 self.add_clause(learn)
-              #  time.sleep(10)
+                #time.sleep(10)
                 return False
             if clause[0] == falseval or clause[1] == falseval:
                 retval = self._search(clause)
                 if retval is None:
-                    print("a unit clause!",clause)
-                    if clause[0] == falseval:
-                        self._addassignment(clause[1])
+                    if len(clause) > 2:
+                        cause = [falseval] + [x^1 for x in clause [2:]]
                     else:
-                        self._addassignment(clause[0])
+                        cause = [falseval]
+                    print("a unit clause!",clause,cause)
+                    if clause[0] == falseval:
+                        result.append([clause[1],cause])
+                    else:
+                        result.append([clause[0],cause])
                 else:
                     #print("Swapping!")
                     index = 0 if clause[0] == falseval else 1
                     newclause = clause[retval]
                     clause[retval] = clause[index]
                     clause[index] = newclause
+        if len(result) > 0:
+            for i in result:
+                if i not in self.deduced:
+                    self.deduced.append(i)
+            return True
 
 
     def _cdcl(self):
@@ -121,9 +143,25 @@ class incrementalSolver(SATRep):
             self.stack.append(self.chosenOne)
             self.assignments.append(self.chosenOne[0])
             # add the choseone to the stack and call deduce
-            if self._deduce() is False:
-                print("restarting..")
-                return "restart"
+            while True:
+                val = self._deduce()
+                if val is True or len(self.deduced) > 0:
+                    if val is False:
+                        print("restarting")
+                        return "restart"
+                    if val is "unsat":
+                        print("Unsatisfiable!")
+                        return "unsat"
+                    tmp = self.deduced.pop()
+                    self._addassignment(tmp[0],tmp[1])
+                elif val is "unsat":
+                    print("Unsatisfiable!")
+                    return "unsat"
+                elif val is False:
+                        print("restarting")
+                        return "restart"
+                else:
+                    break
         return True
 
     def  solve(self):

@@ -14,7 +14,7 @@ class SATRep():
         
     def  add_clause(self,clause):
         if len(clause) == 1:
-            self.preprocess(clause)
+            self.preprocess(clause[0])
         if clause not in self.sentence:
             self.sentence.append(clause)
 
